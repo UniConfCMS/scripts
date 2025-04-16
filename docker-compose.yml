@@ -1,98 +1,59 @@
+version: '3.8'
+
 services:
-  # Database service configuration for MySQL
+  # MySQL database
   db:
-    # Automatically restart the container on errors or Docker restart
     restart: always
-
-    # Use the official MySQL image version 9.2.0
     image: mysql:9.2.0
-
-    # Map port 3306 (MySQL) from container to the host machine
     ports:
       - "3306:3306"
-
-    # Set environment variables for MySQL container
     environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes  # Allow empty root password (NOT recommended for production)
-
-    # Health check to ensure the database is ready
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
     healthcheck:
-      # Execute a command to check database status
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root"]
-      interval: 10s         # Check every 10 seconds
-      timeout: 10s          # Maximum wait time for a response
-      retries: 5            # Number of attempts before marking the container as unhealthy
-      start_period: 30s     # Wait 30 seconds before starting health checks after launch
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
-  # phpMyAdmin service configuration for MySQL management
+  # phpMyAdmin
   phpmyadmin:
-    # Automatically restart the container on errors or Docker restart
     restart: always
-
-    # Use the latest official phpMyAdmin image
     image: phpmyadmin:latest
-
-    # Map port 80 (phpMyAdmin) from container to port 8080 on the host
     ports:
       - "8080:80"
 
-  # PHP (Laravel application) service configuration
+  # Laravel backend
   php:
-    # Assign a custom container name
     container_name: backend
-
-    # Automatically restart the container on errors or Docker restart
     restart: always
-
-    # Use the custom built image for the application
     image: conference_cms_registry/backend:1.0
-
-    # Build the container from the Dockerfile
     build:
-      context: ../conference-cms-backend/       # Path to the project root directory
-      dockerfile: ../conference-cms-backend/Docker/Dockerfile  # Path to the Dockerfile
-
-    # Wait for the database to be ready before starting
+      context: ../conference-cms-backend/
+      dockerfile: ../conference-cms-backend/Docker/Dockerfile
     depends_on:
       db:
-        condition: service_healthy  # Ensures the PHP container starts only when the database is healthy
-
-    # Map port 8000 from container to the host machine
+        condition: service_healthy
     ports:
       - "8000:8000"
-
-    # Mount the local project directory to the container
     volumes:
-      - ../conference-cms-backend:/conference-cms-backend  # Enables file sync (live reload)
-
-    # Enable terminal interaction (TTY) for the container
+      - ../conference-cms-backend:/conference-cms-backend
     tty: true
 
-  # Frontend (React application) service configuration
+  # React frontend
   frontend:
-      # Assign a custom container name
-      container_name: frontend
-
-      # Automatically restart the container on errors or Docker restart
-      restart: always
-
-      # Build the container from the Dockerfile in the frontend directory
-      build:
-        context: ../conference-cms-frontend/    # Path to the project root directory for the frontend
-        dockerfile: ../conference-cms-frontend/Docker/Dockerfile # Path to the Dockerfile for the frontend
-
-      # Map port 3000 from container to the host machine for the React application
-      ports:
-        - "3000:3000"
-
-      # Mount the local project directory to the container for development
-      volumes:
-        - ../conference-cms-frontend:/app      # Enables file sync (live reload)
-
-      # Set environment variables for the React application
-      environment:
-        - REACT_APP_API_BASE_URL=http://backend:8000/api # Example: URL for the Laravel API
-
-      # Ensure the frontend service starts after the backend service (optional, adjust as needed)
-      depends_on:
-        - php
+    container_name: frontend
+    restart: always
+    build:
+      context: ../conference-cms-frontend/
+      dockerfile: ../conference-cms-frontend/Docker/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../conference-cms-frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_BASE_URL=http://backend:8000/api
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - php
