@@ -14,6 +14,7 @@ services:
     # Set environment variables for MySQL container
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes  # Allow empty root password (NOT recommended for production)
+      - WDS_SOCKET_PORT=8000 # WebSocket port for hot reloading (optional, adjust as needed)
 
     # Health check to ensure the database is ready
     healthcheck:
