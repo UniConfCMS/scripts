@@ -66,6 +66,9 @@ services:
     volumes:
       - ../conference-cms-backend:/conference-cms-backend  # Enables file sync (live reload)
 
+
+    user: "0:0"  # Run the container as a non-root user (adjust UID and GID as needed)
+
     # Enable terminal interaction (TTY) for the container
     tty: true
 
