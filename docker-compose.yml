@@ -101,4 +101,5 @@ services:
 
       # Ensure the frontend service starts after the backend service (optional, adjust as needed)
       depends_on:
-        - php
+        - php 
+      user: "0:0"
