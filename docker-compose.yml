@@ -91,6 +91,7 @@ services:
 
       # Mount the local project directory to the container for development
       volumes:
+        - /app/node_modules
         - ../conference-cms-frontend:/app      # Enables file sync (live reload)
 
       # Set environment variables for the React application
